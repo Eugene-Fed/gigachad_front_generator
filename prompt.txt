@@ -1,0 +1,17 @@
+Напиши небольшой лендинг для продажи наушников Sony WH1000XM4S
+На странице должны быть изображения и красочное описание товара
+Страница лендинга должна занимать в объёме несколько экранов
+Картинки для фона:
+https://ir-3.ozone.ru/s3/multimedia-1-8/w1200/6952254632.jpg
+https://i.ytimg.com/vi/vHh4reIqb5M/maxresdefault.jpg
+
+Картинки для контента:
+https://www.digitaltrends.com/wp-content/uploads/2020/08/sony-wh-1000xm4-00005.jpg
+https://ir.ozone.ru/s3/multimedia-5/w1200/6784862945.jpg
+https://msk.hi-stores.ru/upload/blog/sony2.jpg
+https://i.blogs.es/e8ad22/sony-wh-1000xm4-funda/650_1200.jpg
+
+Добавь также несколько отзывов с фотографиями из списка ниже:
+https://sc-rus.ru/images/detailed/17/11.png
+https://cdn.mos.cms.futurecdn.net/w76xMtBV6rxAJ9Cc2a7dzJ-1200-80.jpg
+
