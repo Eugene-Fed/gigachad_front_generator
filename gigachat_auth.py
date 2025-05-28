@@ -27,7 +27,7 @@ def get_access_token(auth_key: str,
     :param scope: Вариант API: для физ лиц, для ИП и юрлиц с предоплатой или с оплатой по факту
     :param url:
     :param verify: https://developers.sber.ru/docs/ru/gigachat/certificates
-    :return:
+    :return: str: Токен доступа, float: Время истечения токена в секундах
     """
     payload = {'scope': scope}
     headers = {
