@@ -1,3 +1,4 @@
+from datetime import datetime
 from dotenv import load_dotenv
 from gigachat_auth import get_access_token
 from gigachat_params import Url, Scope, Verify, LLModels, SYSTEM_PROMPT
@@ -80,6 +81,7 @@ def main():
     with open('prompt.txt', 'r', encoding='utf-8') as file:
         user_prompt = file.read()
     print(user_prompt)
+    print(f"Токен истекает: {datetime.fromtimestamp(access_token_expires_time)}")
 
 
 if __name__ == '__main__':
