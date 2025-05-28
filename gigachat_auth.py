@@ -31,6 +31,7 @@ def get_access_token(auth_key: str,
     :param url:
     :param verify: https://developers.sber.ru/docs/ru/gigachat/certificates
     :return: str: Токен доступа, float: Время истечения токена в секундах
+    TODO - Если auth_key отсутствует, тогда используем et_b24_base_token()
     """
 
     # Проверяем .env на наличие действующего токена
@@ -38,6 +39,7 @@ def get_access_token(auth_key: str,
     if old_token:
         return old_token["token"], old_token["time"]
 
+    # Если токен отсутствует или просрочен, получаем его по API
     payload = {'scope': scope}
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -61,10 +63,13 @@ def _set_access_token(access_token: str, expires_time: float):
 
 def _get_access_token() -> dict:
     config = dotenv_values(ENV_PATH)
-    expires_time = config.get("EXPIRES_TIME")
-    if expires_time and float(expires_time) > time() + 1.:  # Добавляем 1 секунду к текущему времени для перестраховки
-        return {"token": config["ACCESS_TOKEN"],
-                "time": float(config["EXPIRES_TIME"])}
+    expires_time = config.get("EXPIRES_TIME")  # Если токена нет в .env файле, пойдём получать его по API
+    access_token = config.get("ACCESS_TOKEN")
+
+    # Добавляем 1 секунду к текущему времени для перестраховки
+    if expires_time and access_token and float(expires_time) > time() + 1.:
+        return {"token": access_token,
+                "time": float(expires_time)}
 
 
 def main():
