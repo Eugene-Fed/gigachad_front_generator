@@ -4,6 +4,9 @@
 https://developers.sber.ru/docs/ru/gigachat/quickstart/ind-create-project
 
 
+### Рекомендация к генерации
+Используйте модель не ниже `GigaChat-2-Pro`
+
 ### Как получить токен доступа
 https://developers.sber.ru/docs/ru/gigachat/api/reference/rest/post-token  
 Время жизни токена: 30 минут
