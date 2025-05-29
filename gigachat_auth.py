@@ -1,9 +1,12 @@
-from dotenv import load_dotenv
+from dotenv import load_dotenv, dotenv_values, set_key
 from gigachat_params import Url, Scope, Verify
+from time import time
 import requests
 import uuid
 import base64
 import json
+
+ENV_PATH = ".env"
 
 
 def get_b24_base_token(client_id: str, client_secret: str):
@@ -28,7 +31,15 @@ def get_access_token(auth_key: str,
     :param url:
     :param verify: https://developers.sber.ru/docs/ru/gigachat/certificates
     :return: str: Токен доступа, float: Время истечения токена в секундах
+    TODO - Если auth_key отсутствует, тогда используем et_b24_base_token()
     """
+
+    # Проверяем .env на наличие действующего токена
+    old_token = _get_access_token()
+    if old_token:
+        return old_token["token"], old_token["time"]
+
+    # Если токен отсутствует или просрочен, получаем его по API
     payload = {'scope': scope}
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -41,15 +52,33 @@ def get_access_token(auth_key: str,
 
     access_token = json.loads(response.text).get('access_token')
     expires_time = json.loads(response.text).get('expires_at') / 1000  # API возвращает timestamp в миллисикундах
+    _set_access_token(access_token, expires_time)
     return access_token, expires_time
+
+
+def _set_access_token(access_token: str, expires_time: float):
+    set_key(ENV_PATH, "ACCESS_TOKEN", access_token)
+    set_key(ENV_PATH, "EXPIRES_TIME", str(expires_time))
+
+
+def _get_access_token() -> dict:
+    config = dotenv_values(ENV_PATH)
+    expires_time = config.get("EXPIRES_TIME")  # Если токена нет в .env файле, пойдём получать его по API
+    access_token = config.get("ACCESS_TOKEN")
+
+    # Добавляем 1 секунду к текущему времени для перестраховки
+    if expires_time and access_token and float(expires_time) > time() + 1.:
+        return {"token": access_token,
+                "time": float(expires_time)}
 
 
 def main():
     import os
     from datetime import datetime
     load_dotenv()
-    _, expires_time = get_access_token(os.getenv('GIGACHAT_AUTH_KEY'))
+    access_token, expires_time = get_access_token(os.getenv('GIGACHAT_AUTH_KEY'))
     print(f"Токен истекает: {datetime.fromtimestamp(expires_time)}")
+    print(access_token)
 
 
 if __name__ == '__main__':
