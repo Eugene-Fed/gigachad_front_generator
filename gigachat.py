@@ -100,6 +100,9 @@ def main():
         user_prompt = file.read()
     print(user_prompt)
     print(f"Токен истекает: {datetime.fromtimestamp(access_token_expires_time)}")
+    
+    if not PAGES_PATH.is_dir():
+        PAGES_PATH.mkdir()
 
     with open(PAGES_PATH / f"index_{time.time()}.html",
               "w",
