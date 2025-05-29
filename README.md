@@ -5,7 +5,8 @@ https://developers.sber.ru/docs/ru/gigachat/quickstart/ind-create-project
 
 
 ### Рекомендация к генерации
-Используйте модель не ниже `GigaChat-2-Pro`
+Используйте для тестирования модель `GigaChat-2` -- она же `GigaChat-2-Lite`, т.к. там большой запас токенов при небольшом расходе
+Используйте для проверки качества используйте модель не ниже `GigaChat-2-Pro`, т.к. `Lite` выдаёт посредственный результат
 
 ### Как получить токен доступа
 https://developers.sber.ru/docs/ru/gigachat/api/reference/rest/post-token  
