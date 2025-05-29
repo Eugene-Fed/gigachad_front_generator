@@ -2,18 +2,19 @@ ACCESS_TOKEN_LIVE_TIME = 30*60  # Время жизни токена в секу
 SYSTEM_PROMPT = """Ты -- разработчик фронтенда
 Ты должен возвращать по запросам ТОЛЬКО HTML+CSS+JS код без дополнительного описания.
 Содержимое ответа должно быть возможно вставить в HTML-файл без дополнительной редактуры.
+Страница должна иметь анимированные заголовки, паралакс фона и другие визуальные украшения, если 
+в запросе не указано прямо, что "сайт должен быть без анимаций".
 В запрос может входить список ссылок на изображения, которые ты должен использовать при генерации сайта.
 Формат запроса:
     Картинки для фона: 
     https://images.ru/image1.jpg
     https://images.ru/image2.jpg
     https://images.ru/image3.jpg
+    
     Картинки для контента:
     https//any-stocks.com/img.png
     https//othersource.com/image.jpg
     https//мои-фотки.рф/наушники.jpeg
-Страница должна иметь анимированные заголовки, паралакс фона и другие визуальные украшения, если 
-в запросе не указано прямо, что "сайт должен быть без анимаций".
 """
 
 
@@ -47,5 +48,27 @@ class Verify(enumerate):
     # TODO - доописать другие варианты
 
 
-class LLModels(enumerate):
+class LLModel(enumerate):
     GIGACHAT_2_MAX = "GigaChat-2-Max"
+    GIGACHAT_2_PRO = "GigaChat-2-Pro"
+    GIGACHAT_2_LITE = "GigaChat-2"
+    EMBEDDINGS_GIGA_R = "EmbeddingsGigaR"  # Векторное представление текстов - продвинутая модель
+    GIGACHAT_MAX = "GigaChat-Max"
+    GIGACHAT_PRO = "GigaChat-Pro"
+    GIGACHAT_LITE = "GigaChat"
+    GIGACHAT_PLUS = "GigaChat-Plus"  # Вероятно более не поддерживается
+    GIGACHAT_2_MAX_PREVIEW = "GigaChat-2-Max-preview"  # Модель в раннем доступе
+    EMBEDDINGS_2 = "Embeddings-2"  # Векторное представление текстов
+
+
+class Role(enumerate):
+    """
+    SYSTEM: системный промпт, который задает роль модели, например, должна модель отвечать как академик или как школьник
+    USER: сообщение пользователя
+    ASSISTANT: ответ модели
+    FUNCTION: сообщение с результатом работы пользовательской функции https://vk.cc/cMnXEQ
+    """
+    SYSTEM = "system"
+    USER = "user"
+    ASSISTANT = "assistant"
+    FUNCTION = "function"
