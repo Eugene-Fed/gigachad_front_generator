@@ -11,9 +11,10 @@ import time
 
 PROMPT_PATH = Path("prompt.txt")
 PAGES_PATH = Path("pages")
-CHAT_MODEL = LLModel.GIGACHAT_2_LITE
+CHAT_MODEL = LLModel.GIGACHAT_2_PRO
 IS_STREAM = True  # Активация стриминга ответа от нейросети
 VERIFY = Verify.false
+AI_RESPONSE_PATTERN = "```html"  # Определяем наличие "мусора" в теле ответа по форматированию текста нейронкой
 
 
 def save_html():
@@ -22,6 +23,25 @@ def save_html():
 
 def get_html():
     pass
+
+
+def clean_file(file_path: str | Path, pattern: str = AI_RESPONSE_PATTERN):
+    """
+    Очистка файла от лишних символов, которые возвращает нейросеть
+    """
+    file_path = Path(file_path)
+    with open(file_path) as file:
+        if not file.readline().startswith(pattern):
+            print("Файл не был очищен, т.к. не найден паттерн форматированного текста")
+            return  # Если файл начинается не с форматирования вывода нейросети, то пропускаем очистку
+    try:
+        content = file_path.read_text().splitlines()[1:-1]
+        file_path.write_text('\n'.join(content))
+        print("\nФайл был очищен")
+    except IndexError:
+        # Файл содержит меньше 2 строк
+        # file_path.write_text('')
+        print("Файл содержит меньше 2 строк")
 
 
 def get_text_response(user_prompt: str,
@@ -101,16 +121,14 @@ def main():
     print(user_prompt)
     print(f"Токен истекает: {datetime.fromtimestamp(access_token_expires_time)}")
 
-    with open(PAGES_PATH / f"index_{time.time()}.html",
-              "w",
-              encoding='utf-8') as f:
-        for bunch in get_text_response(user_prompt="Напиши небольшой сайт на HTML+CSS",
-                                       system_prompt="Строго выполняй запрос, без дополнительных комментариев",
-                                       token=access_token, model=CHAT_MODEL):
-            f.write(bunch)
+    if not PAGES_PATH.is_dir():
+        PAGES_PATH.mkdir()
 
-    # response = get_text_response(user_prompt=user_prompt, token=access_token, model=CHAT_MODEL)
-    # print(response)
+    file_name = PAGES_PATH / f"index_{time.time()}_{CHAT_MODEL}.html"
+    with open(file_name, "w", encoding='utf-8') as f:
+        for bunch in get_text_response(user_prompt=user_prompt, token=access_token, model=CHAT_MODEL):
+            f.write(bunch)
+    # clean_file(file_name)
 
 
 if __name__ == '__main__':
