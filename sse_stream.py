@@ -14,6 +14,7 @@ def process_sse_stream(method, url, data, verify, headers=None):
         with requests.request(method, url, headers=headers, data=data, verify=verify, stream=True) as response:
             response.raise_for_status()
 
+            print("Получаем данные:")
             for line in response.iter_lines():
                 if line:
                     decoded_line = line.decode('utf-8')
@@ -27,8 +28,8 @@ def process_sse_stream(method, url, data, verify, headers=None):
                         data = decoded_line[5:].strip()
                         if data == "[DONE]":
                             break
-                        print(f"Получены данные: {data}")
                         content = json.loads(data)["choices"][0]["delta"]["content"]
+                        print(content, end='')
                         yield content
                     elif decoded_line.startswith('event:'):
                         event_type = decoded_line[6:].strip()
