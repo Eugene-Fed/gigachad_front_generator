@@ -7,6 +7,8 @@ import os
 import json
 import time
 
+PROMPT_PATH = "prompt.txt"
+
 
 def save_html():
     pass
@@ -78,7 +80,7 @@ def main():
     load_dotenv()
     auth_key = os.getenv('GIGACHAT_AUTH_KEY')
     access_token, access_token_expires_time = get_access_token(auth_key=auth_key)
-    with open('prompt.txt', 'r', encoding='utf-8') as file:
+    with open(PROMPT_PATH, 'r', encoding='utf-8') as file:
         user_prompt = file.read()
     print(user_prompt)
     print(f"Токен истекает: {datetime.fromtimestamp(access_token_expires_time)}")
