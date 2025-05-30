@@ -1,7 +1,7 @@
 from datetime import datetime
 from dotenv import load_dotenv
 from gigachat_auth import get_access_token
-from gigachat_params import Url, Scope, Verify, LLModel, Role, SYSTEM_PROMPT
+from gigachat_params import Url, Verify, LLModel, Role, SystemPrompt
 from sse_stream import process_sse_stream
 from pathlib import Path
 import requests
@@ -17,8 +17,10 @@ VERIFY = Verify.false
 AI_RESPONSE_PATTERN = "```html"  # Определяем наличие "мусора" в теле ответа по форматированию текста нейронкой
 
 
-def save_html():
-    pass
+def save_html(file_name, user_prompt, token, model=CHAT_MODEL):
+    with open(file_name, "w", encoding='utf-8') as f:
+        for bunch in get_text_response(user_prompt=user_prompt, token=token, model=model):
+            f.write(bunch)
 
 
 def get_html():
@@ -27,57 +29,31 @@ def get_html():
 
 def clean_file(file_path: str | Path, pattern: str = AI_RESPONSE_PATTERN):
     """
-    Очистка файла от лишних символов, которые возвращает нейросеть
+    Очистка файла от лишних символов, которые возвращает нейросеть.
     """
     file_path = Path(file_path)
-    with open(file_path) as file:
-        if not file.readline().startswith(pattern):
-            print("Файл не был очищен, т.к. не найден паттерн форматированного текста")
-            return  # Если файл начинается не с форматирования вывода нейросети, то пропускаем очистку
     try:
+        with open(file_path) as file:
+            if not file.readline().startswith(pattern):
+                print("\nФайл не был очищен, т.к. не найден паттерн форматированного текста")
+                return  # Если файл начинается не с форматирования вывода нейросети, то пропускаем очистку
+
         content = file_path.read_text().splitlines()[1:-1]
         file_path.write_text('\n'.join(content))
         print("\nФайл был очищен")
     except IndexError:
-        # Файл содержит меньше 2 строк
-        # file_path.write_text('')
         print("Файл содержит меньше 2 строк")
+    except Exception as e:
+        print(e)
 
 
 def get_text_response(user_prompt: str,
                       token: str,
                       model: str = LLModel.GIGACHAT_2_LITE,
-                      system_prompt: str = SYSTEM_PROMPT,
+                      system_prompt: str = SystemPrompt.RUS_EUGENE,
                       url: str = Url.CHAT_API,
                       stream: bool = IS_STREAM) -> json:
-    '''
-    payload = json.dumps({
-        "model": "GigaChat-2-Max",
-        "messages": [
-            {
-                "created_at": 1748374867,
-                "role": "user",
-                "content": "",
-                "attachments": []
-            },
-            {
-                "role": "assistant",
-                "created_at": 1748374869,
-                "content": ""
-            }
-        ],
-        "profanity_check": True
-    })
-    headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': 'Bearer <TOKEN>'
-    }
 
-    response = requests.request("POST", url, headers=headers, data=payload)
-
-    print(response.text)
-    '''
     payload = json.dumps(
         {
             "model": model,
@@ -102,9 +78,6 @@ def get_text_response(user_prompt: str,
     }
 
     if IS_STREAM:
-        # response_text = ""
-        # response_text += process_sse_stream("POST", url=url, headers=headers, data=payload, verify=VERIFY)
-        # return response_text
         for bunch in process_sse_stream("POST", url=url, headers=headers, data=payload, verify=VERIFY):
             yield bunch
     else:
@@ -116,19 +89,17 @@ def main():
     load_dotenv()
     auth_key = os.getenv('GIGACHAT_AUTH_KEY')
     access_token, access_token_expires_time = get_access_token(auth_key=auth_key)
+
     with open(PROMPT_PATH, 'r', encoding='utf-8') as file:
         user_prompt = file.read()
-    print(user_prompt)
     print(f"Токен истекает: {datetime.fromtimestamp(access_token_expires_time)}")
 
     if not PAGES_PATH.is_dir():
         PAGES_PATH.mkdir()
 
     file_name = PAGES_PATH / f"index_{time.time()}_{CHAT_MODEL}.html"
-    with open(file_name, "w", encoding='utf-8') as f:
-        for bunch in get_text_response(user_prompt=user_prompt, token=access_token, model=CHAT_MODEL):
-            f.write(bunch)
-    # clean_file(file_name)
+    save_html(file_name=file_name, user_prompt=user_prompt, token=access_token, model=CHAT_MODEL)
+    clean_file(file_name)
 
 
 if __name__ == '__main__':

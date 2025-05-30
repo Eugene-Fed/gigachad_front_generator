@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Купить Sony WH1000XM4S</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+    }
+    .hero {
+      position: relative;
+      height: 100vh;
+      background-image: url('https://ir-3.ozone.ru/s3/multimedia-1-8/w1200/6952254632.jpg');
+      background-size: cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      text-align: center;
+    }
+    h1 {
+      font-size: 4em;
+      animation: fadeInDown 1s ease-out forwards;
+    }
+    p {
+      font-size: 1.8em;
+      opacity: 0;
+      animation: fadeInUp 1.5s ease-out forwards;
+      animation-delay: 0.5s;
+    }
+    @keyframes fadeInDown {
+      from {opacity: 0; transform: translateY(-10px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+    @keyframes fadeInUp {
+      from {opacity: 0; transform: translateY(10px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+    .content {
+      padding: 50px;
+      background-color: white;
+    }
+    .features img {
+      max-width: 100%;
+      height: auto;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .reviews {
+      background-color: #eaeaea;
+      padding: 50px;
+    }
+    .review-item {
+      border-radius: 10px;
+      background-color: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+    .parallax {
+      background-attachment: fixed;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      height: 500px;
+    }
+    .parallax-1 {
+      background-image: url('https://i.ytimg.com/vi/vHh4reIqb5M/maxresdefault.jpg');
+    }
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Sony WH1000XM4S – Ощутите звук будущего!</span></h1>
+  <p>Тихий фоновый шум? Не проблема! Теперь вы можете наслаждаться музыкой в любом месте.</p>
+</div>
+
+<div class="content">
+  <section class="features">
+    <h2 style="text-align:center;">Почему выбирают Sony WH1000XM4S?</h2>
+    <div style="display:flex; justify-content:space-between;">
+      <img src="https://www.digitaltrends.com/wp-content/uploads/2020/08/sony-wh-1000xm4-00005.jpg" alt="Sony WH1000XM4S внешний вид">
+      <img src="https://ir.ozone.ru/s3/multimedia-5/w1200/6784862945.jpg" alt="Sony WH1000XM4S внутри">
+    </div>
+    <br><br>
+    <p>Уникальная технология шумоподавления, длительное время работы от аккумулятора и высокое качество звука делают эти наушники незаменимыми спутниками в путешествиях и повседневной жизни.</p>
+  </section>
+  
+  <div class="parallax parallax-1"></div>
+
+  <section class="reviews">
+    <h2 style="text-align:center;">Отзывы покупателей:</h2>
+    <div class="review-item">
+      <img src="https://sc-rus.ru/images/detailed/17/11.png" width="100" alt="Покупатель">
+      <blockquote>"Отличные наушники, особенно впечатлило шумоподавление!" действительно слышишь только музыку." 😍</blockquote>
+    </div>
+    <div class="review-item">
+      <img src="https://cdn.mos.cms.futurecdn.net/w76xMtBV6rxAJ9Cc2a7dzJ-1200-80.jpg" width="100" alt="Покупатель">
+      <blockquote>"Купил жене - она в восторге! Качество звука просто космос! 🚀"</blockquote>
+    </div>
+  </section>
+</div>
+
+<script>
+  // Простая анимация прокрутки страницы к разделу отзывов
+  document.querySelector('.reviews').addEventListener('mouseenter', function() {
+    window.scrollTo({top: this.offsetTop, behavior: 'smooth'});
+  });
+</script>
+
+</body>
+</html>
