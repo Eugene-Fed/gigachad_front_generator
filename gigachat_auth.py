@@ -40,6 +40,7 @@ def get_access_token(auth_key: str,
         return old_token["token"], old_token["time"]
 
     # Если токен отсутствует или просрочен, получаем его по API
+    print("Токен просрочен, запрашиваю новый.")
     payload = {'scope': scope}
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
