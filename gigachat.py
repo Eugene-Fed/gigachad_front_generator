@@ -9,7 +9,8 @@ import os
 import json
 import time
 
-PROMPT_PATH = Path("prompt.txt")
+PROMPT_PATH = Path("prompts")
+PROMPT_FILE_NAME = Path("landing_rus.txt")
 PAGES_PATH = Path("pages")
 CHAT_MODEL = LLModel.GIGACHAT_2_PRO
 IS_STREAM = True  # Активация стриминга ответа от нейросети
@@ -44,7 +45,7 @@ def clean_file(file_path: str | Path, pattern: str = AI_RESPONSE_PATTERN):
     except IndexError:
         print("Файл содержит меньше 2 строк")
     except Exception as e:
-        print(e)
+        print("\n", e)
 
 
 def get_text_response(user_prompt: str,
@@ -90,7 +91,7 @@ def main():
     auth_key = os.getenv('GIGACHAT_AUTH_KEY')
     access_token, access_token_expires_time = get_access_token(auth_key=auth_key)
 
-    with open(PROMPT_PATH, 'r', encoding='utf-8') as file:
+    with open(PROMPT_PATH / PROMPT_FILE_NAME, 'r', encoding='utf-8') as file:
         user_prompt = file.read()
     print(f"Токен истекает: {datetime.fromtimestamp(access_token_expires_time)}")
 
