@@ -10,8 +10,8 @@ import json
 import time
 import argparse
 
-PROMPT_PATH = Path("prompts")
-PROMPT_FILE_NAME = Path("landing_rus.txt")
+PROMPT_FILE_NAME = Path("prompts/landing_rus.txt")
+SYSTEM_PROMPT = SystemPrompt.RUS_EUGENE
 CHAT_MODEL = LLModel.GIGACHAT_2_LITE
 PAGES_PATH = Path("pages")
 IS_STREAM = True  # Активация стриминга ответа от нейросети
@@ -88,9 +88,13 @@ def get_text_response(user_prompt: str,
 
 
 def get_arguments(parser):
-    # parser = argparse.ArgumentParser()
+    # TODO указать лимит ожидания ответа для запроса без стриминга
     parser.add_argument("--prompt", "-p",
                         help="Set User prompt in quotes",
+                        type=str,
+                        default=None)
+    parser.add_argument("--prompt_file", "-pf",
+                        help="Set Path to file with user prompt",
                         type=str,
                         default=None)
     parser.add_argument("--sys_prompt", "-sp",
@@ -117,13 +121,14 @@ def get_arguments(parser):
 
 def parse_arguments(arguments) -> dict:
     parsed_arguments = dict()
-    if arguments.prompt:
-        parsed_arguments['user_prompt'] = arguments.prompt
+    if prompt := arguments.prompt:
+        parsed_arguments['user_prompt'] = prompt
     else:
-        with open(PROMPT_PATH / PROMPT_FILE_NAME, 'r', encoding='utf-8') as file:
+        prompt_file = Path(arguments.prompt_file) if arguments.prompt_file else PROMPT_FILE_NAME
+        with open(prompt_file, 'r', encoding='utf-8') as file:
             parsed_arguments['user_prompt'] = file.read()
 
-    parsed_arguments['system_prompt'] = arguments.sys_prompt if arguments.sys_prompt else SystemPrompt.RUS_EUGENE
+    parsed_arguments['system_prompt'] = arguments.sys_prompt if arguments.sys_prompt else SYSTEM_PROMPT
 
     model = {"lite": LLModel.GIGACHAT_2_LITE,
              "pro": LLModel.GIGACHAT_2_PRO,
@@ -147,14 +152,9 @@ def main():
     access_token, access_token_expires_time = get_access_token(auth_key=auth_key)
     print(f"Токен истекает: {datetime.fromtimestamp(access_token_expires_time)}")
 
-    # with open(PROMPT_PATH / PROMPT_FILE_NAME, 'r', encoding='utf-8') as file:
-    #     user_prompt = file.read()
-
     if not PAGES_PATH.is_dir():
         PAGES_PATH.mkdir()
 
-    # file_name = PAGES_PATH / f"index_{time.time()}_{CHAT_MODEL}.html"
-    # save_html(file_name=file_name, user_prompt=user_prompt, token=access_token, model=CHAT_MODEL)
     save_html(token=access_token,
               **parsed_arguments)
     clean_file(parsed_arguments["file_name"])
