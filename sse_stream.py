@@ -1,13 +1,14 @@
 import json
-
 import requests
 
 
-def process_sse_stream(method, url, data, verify, headers=None):
+def process_sse_stream(method, url, data, verify=False, headers=None):
     """
     Обрабатывает SSE-поток с заданного URL
-
+    :param method: HTTP-метод, 'GET', 'POST' и т.д.
     :param url: URL SSE-эндпоинта
+    :param data: Payload или нагрузка. По-умолчанию JSON
+    :param verify: Проверять ли сертификат
     :param headers: Заголовки HTTP-запроса
     """
     try:
@@ -47,6 +48,7 @@ def process_sse_stream(method, url, data, verify, headers=None):
 
 def main():
     # Пример использования
+    # TODO - своровано из ИИ, вероятно не работает
     sse_url = 'https://example.com/events'
     process_sse_stream(sse_url)
 
