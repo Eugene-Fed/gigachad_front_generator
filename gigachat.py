@@ -8,19 +8,20 @@ import requests
 import os
 import json
 import time
+import argparse
 
 PROMPT_PATH = Path("prompts")
 PROMPT_FILE_NAME = Path("landing_rus.txt")
+CHAT_MODEL = LLModel.GIGACHAT_2_LITE
 PAGES_PATH = Path("pages")
-CHAT_MODEL = LLModel.GIGACHAT_2_PRO
 IS_STREAM = True  # Активация стриминга ответа от нейросети
-VERIFY = Verify.false
+VERIFY = Verify.false  # Может быть не только bool, но и конкретным значением
 AI_RESPONSE_PATTERN = "```html"  # Определяем наличие "мусора" в теле ответа по форматированию текста нейронкой
 
 
-def save_html(file_name, user_prompt, token, model=CHAT_MODEL):
+def save_html(file_name, **kwargs):
     with open(file_name, "w", encoding='utf-8') as f:
-        for bunch in get_text_response(user_prompt=user_prompt, token=token, model=model):
+        for bunch in get_text_response(**kwargs):
             f.write(bunch)
 
 
@@ -50,10 +51,10 @@ def clean_file(file_path: str | Path, pattern: str = AI_RESPONSE_PATTERN):
 
 def get_text_response(user_prompt: str,
                       token: str,
-                      model: str = LLModel.GIGACHAT_2_LITE,
-                      system_prompt: str = SystemPrompt.RUS_EUGENE,
-                      url: str = Url.CHAT_API,
-                      stream: bool = IS_STREAM) -> json:
+                      model: str,  # = LLModel.GIGACHAT_2_LITE
+                      system_prompt: str,  # = SystemPrompt.RUS_EUGENE
+                      stream: bool,  # = IS_STREAM
+                      url: str = Url.CHAT_API) -> json:
 
     payload = json.dumps(
         {
@@ -86,21 +87,77 @@ def get_text_response(user_prompt: str,
         return response.text
 
 
-def main():
-    load_dotenv()
-    auth_key = os.getenv('GIGACHAT_AUTH_KEY')
-    access_token, access_token_expires_time = get_access_token(auth_key=auth_key)
+def get_arguments(parser):
+    # parser = argparse.ArgumentParser()
+    parser.add_argument("--prompt", "-p",
+                        help="Set User prompt in quotes",
+                        type=str,
+                        default=None)
+    parser.add_argument("--sys_prompt", "-sp",
+                        help="""Set System prompt in quotes. The model does not respond to the system prompt, 
+                        add here the Context for the model's response or the Role to play in forming the response.""",
+                        type=str,
+                        default=None)
+    parser.add_argument("--model", '-m',
+                        help="Используемая сеть: lite, pro, max",
+                        type=str,
+                        default="lite",
+                        choices=["lite", "pro", "max"])
+    parser.add_argument("--output", "-o",
+                        help="Имя файла, в который сохранится результат",
+                        type=str,
+                        default=None)
+    parser.add_argument("--stream", "-s",
+                        help="Возвращать результат сразу или по полной готовности",
+                        type=bool,
+                        default=IS_STREAM,
+                        choices=[True, False])
+    return parser.parse_args()
 
-    with open(PROMPT_PATH / PROMPT_FILE_NAME, 'r', encoding='utf-8') as file:
-        user_prompt = file.read()
+
+def parse_arguments(arguments) -> dict:
+    parsed_arguments = dict()
+    if arguments.prompt:
+        parsed_arguments['user_prompt'] = arguments.prompt
+    else:
+        with open(PROMPT_PATH / PROMPT_FILE_NAME, 'r', encoding='utf-8') as file:
+            parsed_arguments['user_prompt'] = file.read()
+
+    parsed_arguments['system_prompt'] = arguments.sys_prompt if arguments.sys_prompt else SystemPrompt.RUS_EUGENE
+
+    model = {"lite": LLModel.GIGACHAT_2_LITE,
+             "pro": LLModel.GIGACHAT_2_PRO,
+             "max": LLModel.GIGACHAT_2_MAX}
+    parsed_arguments['model'] = model[arguments.model]
+
+    pages_file_name = PAGES_PATH / f"index_{time.time()}_{parsed_arguments['model']}.html"
+    parsed_arguments['file_name'] = Path(arguments.output) if arguments.output else pages_file_name
+
+    parsed_arguments['stream'] = arguments.stream
+
+    return parsed_arguments
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parsed_arguments = parse_arguments(get_arguments(parser))
+
+    load_dotenv()
+    auth_key = os.getenv("GIGACHAT_AUTH_KEY")
+    access_token, access_token_expires_time = get_access_token(auth_key=auth_key)
     print(f"Токен истекает: {datetime.fromtimestamp(access_token_expires_time)}")
+
+    # with open(PROMPT_PATH / PROMPT_FILE_NAME, 'r', encoding='utf-8') as file:
+    #     user_prompt = file.read()
 
     if not PAGES_PATH.is_dir():
         PAGES_PATH.mkdir()
 
-    file_name = PAGES_PATH / f"index_{time.time()}_{CHAT_MODEL}.html"
-    save_html(file_name=file_name, user_prompt=user_prompt, token=access_token, model=CHAT_MODEL)
-    clean_file(file_name)
+    # file_name = PAGES_PATH / f"index_{time.time()}_{CHAT_MODEL}.html"
+    # save_html(file_name=file_name, user_prompt=user_prompt, token=access_token, model=CHAT_MODEL)
+    save_html(token=access_token,
+              **parsed_arguments)
+    clean_file(parsed_arguments["file_name"])
 
 
 if __name__ == '__main__':
