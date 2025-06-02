@@ -3,7 +3,7 @@
 ### Подготовка к запуску
 1. Зарегистрироваться на [сайте разработчиков](https://developers.sber.ru/studio/workspaces/) или авторизоваться со Сбер ID
 1. Создать проект GigaChat API: https://disk.yandex.ru/i/pEw-eYPcyPLEjg
-1. Войти в созданное Рабочее пространство: https://disk.yandex.ru/i/RtKqiF00zmxQlA
+1. Войти в созданное Рабочее пространство и открыть API ключи: https://disk.yandex.ru/i/RtKqiF00zmxQlA
 1. Создать Ключ авторизации: https://disk.yandex.ru/i/PlT0EfJ015KUQw
 1. Указать Ключ авторизации как значение переменной окружения `GIGACHAT_AUTH_KEY` (в системе или в файле `.env`)
 
