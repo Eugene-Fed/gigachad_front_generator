@@ -22,7 +22,7 @@
 Промт хранится в файле `prompts/landing_rus.txt`.  
 Изменить файл, в котором хранится промпт можно командой `-pf` / `--prompt_file`
 ```python
-python gigachat.py -pf my_new_pompt.txt
+python gigachat.py -pf prompts/another_super_cool_prompt.txt
 ```
 Также возможно указать пользовательский промт непосредственно при запуске с помощью параметра `-p` / `--prompt`
 ```python
