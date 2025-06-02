@@ -71,7 +71,7 @@ python gigachat.py -o my_file.txt
 Находится в файле `schema/api.yml`
 
 ### Ссылки на документацию для разработчиков
-- [Типичные ошибки REST API](https://developers.sber.ru/docs/ru/gigachat/api/errors-description?responseCode=400)
+- [Типичные статус-ошибки GigaChat API](https://developers.sber.ru/docs/ru/gigachat/api/errors-description?responseCode=400)
 - [Quick Start](https://developers.sber.ru/docs/ru/gigachat/quickstart/ind-create-project)
 - [Как получить токен доступа](https://developers.sber.ru/docs/ru/gigachat/api/reference/rest/post-token). Время жизни токена: 30 минут
 - [Как получить сертификат](https://developers.sber.ru/docs/ru/gigachat/certificates). Текущая версия работает без SSL
