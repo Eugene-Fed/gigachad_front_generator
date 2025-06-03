@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from gigachat_auth import get_access_token
 from gigachat_params import Url, Verify, LLModel, Role, SystemPrompt
 from sse_stream import process_sse_stream
+from playwright.sync_api import sync_playwright
 from pathlib import Path
 import requests
 import os
@@ -15,7 +16,7 @@ SYSTEM_PROMPT = SystemPrompt.RUS_EUGENE
 CHAT_MODEL = LLModel.GIGACHAT_2_LITE
 PAGES_PATH = Path("pages")
 IS_STREAM = True  # Активация стриминга ответа от нейросети
-VERIFY = Verify.false  # Может быть не только bool, но и конкретным значением
+VERIFY = Verify.false  # Может быть не только bool, но и конкретным значением TODO решить вопрос с сертификатом
 AI_RESPONSE_PATTERN = "```html"  # Определяем наличие "мусора" в теле ответа по форматированию текста нейронкой
 
 
@@ -79,7 +80,7 @@ def get_text_response(user_prompt: str,
         'Authorization': f'Bearer {token}'
     }
 
-    if IS_STREAM:
+    if stream:
         for bunch in process_sse_stream("POST", url=url, headers=headers, data=payload, verify=VERIFY):
             yield bunch
     else:
@@ -111,6 +112,10 @@ def get_arguments(parser):
                         help="Имя файла, в который сохранится результат",
                         type=str,
                         default=None)
+    parser.add_argument("--full_page", "-f",
+                        help="Необходимо ли сохранять полный скриншот страницы",
+                        type=bool,
+                        default=True)
     parser.add_argument("--stream", "-s",
                         help="Возвращать результат сразу или по полной готовности",
                         type=bool,
@@ -138,9 +143,48 @@ def parse_arguments(arguments) -> dict:
     pages_file_name = PAGES_PATH / f"index_{time.time()}_{parsed_arguments['model']}.html"
     parsed_arguments['file_name'] = Path(arguments.output) if arguments.output else pages_file_name
 
+    parsed_arguments['full_page'] = arguments.full_page
+
     parsed_arguments['stream'] = arguments.stream
 
     return parsed_arguments
+
+
+def get_screenshoot(file_name: str | Path,
+                    full_page: bool = True,
+                    width: int = 1280,
+                    height: int = 720,
+                    timeout: int = 0) -> None:
+    """
+    Необходимо доустановить браузеры командой `playwright install`.
+    Временныей файлы скачиваются в `~/.cache/ms-playwright/ `
+
+    Ошибка playwright._impl._api_types.Error: Host system is missing dependencies
+    `sudo apt-get install libgtk-3-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2`
+    :param file_name: Локальный путь до файла
+    :param full_page: Если True, игнорируются параметры размера изображения
+    :param width:
+    :param height:
+    :param timeout: Количество миллисекунд для ожидания догрузки динамических элементов на странице
+    """
+    html_file = Path(file_name)  # путь к HTML-файлу
+    output_screenshot = html_file.with_suffix(".png")
+
+    with sync_playwright() as p:  # для async -- то же самое, только async_playwright и await на каждой строчке
+        print(f"Сохраняем скриншот в файл '{str(output_screenshot)}'")
+        browser = p.chromium.launch()  # или firefox, webkit
+        page = browser.new_page()
+
+        page.goto(f"file://{html_file.resolve()}")  # Без абсолютного пути к html-файлу либа не работает
+        page.wait_for_timeout(timeout)
+
+        if full_page:
+            page.screenshot(path=output_screenshot, full_page=True)
+        else:
+            page.set_viewport_size({"width": width, "height": height})  # Установка размера окна
+            page.screenshot(path=output_screenshot)
+
+        browser.close()
 
 
 def main():
@@ -155,9 +199,14 @@ def main():
     if not PAGES_PATH.is_dir():
         PAGES_PATH.mkdir()
 
+    # TODO Разделить получение данных и сохранение в файл
     save_html(token=access_token,
               **parsed_arguments)
     clean_file(parsed_arguments["file_name"])
+
+    get_screenshoot(file_name=parsed_arguments["file_name"],
+                    full_page=parsed_arguments["full_page"],
+                    timeout=3000)
 
 
 if __name__ == '__main__':
