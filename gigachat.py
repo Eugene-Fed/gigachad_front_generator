@@ -10,6 +10,8 @@ import os
 import json
 import time
 import argparse
+import httpx
+from openai import OpenAI
 
 PROMPT_FILE_NAME = Path("prompts/landing_rus.txt")
 SYSTEM_PROMPT = SystemPrompt.RUS_EUGENE
@@ -21,8 +23,25 @@ AI_RESPONSE_PATTERN = "```html"  # Определяем наличие "мусо
 
 
 def save_html(file_name, **kwargs):
+    if kwargs.get('use_openai'):
+        ai_response = get_response_with_openai(
+            access_token=kwargs.get('token'),
+            user_prompt=kwargs.get('user_prompt'),
+            model=kwargs.get('model'),
+            system_prompt=kwargs.get('system_prompt'),
+            stream=kwargs.get('stream'),
+        )
+    else:
+        ai_response = get_text_response(
+            token=kwargs.get('token'),
+            user_prompt=kwargs.get('user_prompt'),
+            model=kwargs.get('model'),
+            system_prompt=kwargs.get('system_prompt'),
+            stream=kwargs.get('stream'),
+        )
+
     with open(file_name, "w", encoding='utf-8') as f:
-        for bunch in get_text_response(**kwargs):
+        for bunch in ai_response:
             f.write(bunch)
 
 
@@ -121,6 +140,9 @@ def get_arguments(parser):
                         type=bool,
                         default=IS_STREAM,
                         choices=[True, False])
+    parser.add_argument("--openai",
+                        action='store_true',
+                        help='Подключиться через OpenAI')
     return parser.parse_args()
 
 
@@ -146,6 +168,8 @@ def parse_arguments(arguments) -> dict:
     parsed_arguments['full_page'] = arguments.full_page
 
     parsed_arguments['stream'] = arguments.stream
+
+    parsed_arguments['use_openai'] = arguments.openai
 
     return parsed_arguments
 
@@ -185,6 +209,33 @@ def get_screenshoot(file_name: str | Path,
             page.screenshot(path=output_screenshot)
 
         browser.close()
+
+
+def get_response_with_openai(
+    access_token: str,
+    user_prompt: str,
+    model: str,
+    system_prompt: str,
+    stream: bool,
+    url: str = Url.OPENAI_URL,
+):
+    httpx_client = httpx.Client(verify=False)
+    openai_client = OpenAI(
+        api_key=access_token,
+        base_url=url,
+        http_client=httpx_client,
+    )
+    completion = openai_client.chat.completions.create(
+        model=model,
+        messages=[
+            {'role': 'system', 'content': system_prompt},
+            {'role': 'user', 'content': user_prompt}
+        ],
+    )
+
+    # TODO: Add streaming
+
+    return completion.choices[0].message.content
 
 
 def main():
