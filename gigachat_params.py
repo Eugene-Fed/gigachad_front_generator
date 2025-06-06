@@ -58,6 +58,7 @@ class Url(enumerate):
     """
     AUTH_API = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth"
     CHAT_API = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
+    OPENAI_URL = 'https://gigachat.devices.sberbank.ru/api/v1'
 
 
 class Scope(enumerate):
