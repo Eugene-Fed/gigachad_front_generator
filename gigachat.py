@@ -18,7 +18,6 @@ SYSTEM_PROMPT = SystemPrompt.RUS_EUGENE
 CHAT_MODEL = LLModel.GIGACHAT_2_LITE
 PAGES_PATH = Path("pages")
 IS_STREAM = True  # Активация стриминга ответа от нейросети
-VERIFY = Verify.false  # Может быть не только bool, но и конкретным значением TODO решить вопрос с сертификатом
 AI_RESPONSE_PATTERN = "```html"  # Определяем наличие "мусора" в теле ответа по форматированию текста нейронкой
 
 
@@ -30,6 +29,7 @@ def save_html(file_name, **kwargs):
             model=kwargs.get('model'),
             system_prompt=kwargs.get('system_prompt'),
             stream=kwargs.get('stream'),
+            root_cert=kwargs.get('root_cert'),
         )
     else:
         ai_response = get_text_response(
@@ -38,6 +38,7 @@ def save_html(file_name, **kwargs):
             model=kwargs.get('model'),
             system_prompt=kwargs.get('system_prompt'),
             stream=kwargs.get('stream'),
+            root_cert=kwargs.get('root_cert'),
         )
 
     with open(file_name, "w", encoding='utf-8') as f:
@@ -74,6 +75,7 @@ def get_text_response(user_prompt: str,
                       model: str,  # = LLModel.GIGACHAT_2_LITE
                       system_prompt: str,  # = SystemPrompt.RUS_EUGENE
                       stream: bool,  # = IS_STREAM
+                      root_cert: Path | bool,
                       url: str = Url.CHAT_API) -> json:
 
     payload = json.dumps(
@@ -100,10 +102,10 @@ def get_text_response(user_prompt: str,
     }
 
     if stream:
-        for bunch in process_sse_stream("POST", url=url, headers=headers, data=payload, verify=VERIFY):
+        for bunch in process_sse_stream("POST", url=url, headers=headers, data=payload, verify=root_cert):
             yield bunch
     else:
-        response = requests.request("POST", url=url, headers=headers, data=payload, verify=VERIFY)
+        response = requests.request("POST", url=url, headers=headers, data=payload, verify=root_cert)
         return response.text
 
 
@@ -140,6 +142,10 @@ def get_arguments(parser):
                         type=bool,
                         default=IS_STREAM,
                         choices=[True, False])
+    parser.add_argument('--root_cert', '-rc',
+                        help='Путь к корневому SSL-сертификату МинЦифры.',
+                        type=str,
+                        default=False)
     parser.add_argument("--openai",
                         action='store_true',
                         help='Подключиться через OpenAI')
@@ -170,6 +176,14 @@ def parse_arguments(arguments) -> dict:
     parsed_arguments['stream'] = arguments.stream
 
     parsed_arguments['use_openai'] = arguments.openai
+
+    if arguments.root_cert:
+        root_cert_path = Path(arguments.root_cert)
+        if not root_cert_path.exists():
+            raise FileNotFoundError(root_cert_path.resolve())
+        parsed_arguments['root_cert'] = arguments.root_cert
+    else:
+        parsed_arguments['root_cert'] = Verify.false
 
     return parsed_arguments
 
@@ -217,9 +231,10 @@ def get_response_with_openai(
     model: str,
     system_prompt: str,
     stream: bool,
+    root_cert: Path | bool,
     url: str = Url.OPENAI_URL,
 ):
-    httpx_client = httpx.Client(verify=False)
+    httpx_client = httpx.Client(verify=root_cert)
     openai_client = OpenAI(
         api_key=access_token,
         base_url=url,
@@ -231,11 +246,16 @@ def get_response_with_openai(
             {'role': 'system', 'content': system_prompt},
             {'role': 'user', 'content': user_prompt}
         ],
+        stream=stream,
     )
 
-    # TODO: Add streaming
+    if not stream:
+        return completion.choices[0].message.content
 
-    return completion.choices[0].message.content
+    for chunk in completion:
+        content = chunk.choices[0].delta.content
+        print(content)
+        yield content
 
 
 def main():
@@ -244,7 +264,7 @@ def main():
 
     load_dotenv()
     auth_key = os.getenv("GIGACHAT_AUTH_KEY")
-    access_token, access_token_expires_time = get_access_token(auth_key=auth_key)
+    access_token, access_token_expires_time = get_access_token(auth_key=auth_key, verify=parsed_arguments['root_cert'])
     print(f"Токен истекает: {datetime.fromtimestamp(access_token_expires_time)}")
 
     if not PAGES_PATH.is_dir():
